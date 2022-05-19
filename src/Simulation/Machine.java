@@ -13,8 +13,10 @@ public class Machine implements CProcess,ProductAcceptor
 	private Product product;
 	/** Eventlist that will manage events */
 	private final CEventList eventlist;
-	/** Queue from which the machine has to take products */
-	private Queue queue;
+	/** Queue 1 from which the machine has to take products */
+	private Queue queue1; //queue for regular customers
+	/** Queue 2 from which the machine has to take products */
+	private Queue queue2; //queue for service customers only
 	/** Sink to dump products */
 	private ProductAcceptor sink;
 	/** Status of the machine (b=busy, i=idle) */
@@ -23,82 +25,41 @@ public class Machine implements CProcess,ProductAcceptor
 	private final String name;
 	/** Mean processing time */
 	private double meanProcTime;
-	/** Processing times (in case pre-specified) */
-	private double[] processingTimes;
-	/** Processing time iterator */
-	private int procCnt;
 	/** Type of Desk */
 	private boolean service;
-	
 
-	/**
-	*	Constructor
-	*        Service times are exponentially distributed with mean 30
-	*	@param q	Queue from which the machine has to take products
-	*	@param s	Where to send the completed products
-	*	@param e	Eventlist that will manage events
-	*	@param n	The name of the machine
-	*	@param t 	Service or not
-	*/
-	public Machine(Queue q, ProductAcceptor s, CEventList e, String n, boolean t)
-	{
-		status='i';
-		queue=q;
-		sink=s;
-		eventlist=e;
-		name=n;
-		meanProcTime=30;
-		queue.askProduct(this);
-		service = t;
-	}
 
 	/**
 	*	Constructor
 	*        Service times are exponentially distributed with specified mean
-	*	@param q	Queue from which the machine has to take products
+	*	@param q1	Queue 1 from which the machine has to take products
+	*   @param q2   Queue 2 from which the machine can take products    (service customers)
 	*	@param s	Where to send the completed products
 	*	@param e	Eventlist that will manage events
 	*	@param n	The name of the machine
 	*   @param m	Mean processing time
 	*	@param t 	Service or not
 	*/
-	public Machine(Queue q, ProductAcceptor s, CEventList e, String n, double m, boolean t)
+	public Machine(Queue q1, Queue q2, ProductAcceptor s, CEventList e, String n, double m, boolean t)
 	{
 		status='i';
-		queue=q;
+		queue1=q1;
+		queue2=q2;
 		sink=s;
 		eventlist=e;
 		name=n;
 		meanProcTime=m;
-		queue.askProduct(this);
 		service = t;
+		if(service) {
+			queue2.askProduct(this);
+		}
+		queue1.askProduct(this);
 	}
 	
-	/**
-	*	Constructor
-	*        Service times are pre-specified
-	*	@param q	Queue from which the machine has to take products
-	*	@param s	Where to send the completed products
-	*	@param e	Eventlist that will manage events
-	*	@param n	The name of the machine
-	*        @param st	service times
-	*/
-	public Machine(Queue q, ProductAcceptor s, CEventList e, String n, double[] st)
-	{
-		status='i';
-		queue=q;
-		sink=s;
-		eventlist=e;
-		name=n;
-		meanProcTime=-1;
-		processingTimes=st;
-		procCnt=0;
-		queue.askProduct(this);
-	}
 
 	/**
 	*	Method to have this object execute an event
-	*	@param type	The type of the event that has to be executed
+	*	@param type	The type of the event that has to be executed //not needed
 	*	@param tme	The current time
 	*/
 	public void execute(int type, double tme)
@@ -106,13 +67,23 @@ public class Machine implements CProcess,ProductAcceptor
 		// show arrival
 		System.out.println("Product finished at time = " + tme);
 		// Remove product from system
-		product.stamp(tme,"Production complete",name);
+		product.stamp(tme,"Production complete", name);
 		sink.giveProduct(product);
 		product=null;
 		// set machine status to idle
 		status='i';
 		// Ask the queue for products
-		queue.askProduct(this);
+		if(service) {
+			if(queue2.getRow().size()>0) {
+				queue2.askProduct(this);
+			}
+			else{
+				queue1.askProduct(this);
+			}
+		}
+		else {
+			queue1.askProduct(this);
+		}
 	}
 	
 	/**
@@ -128,6 +99,7 @@ public class Machine implements CProcess,ProductAcceptor
 		{
 			// accept the product
 			product=p;
+
 			// mark starting time
 			product.stamp(eventlist.getTime(),"Production started",name);
 			// start production
@@ -158,18 +130,9 @@ public class Machine implements CProcess,ProductAcceptor
 		}
 		else
 		{
-			if(processingTimes.length>procCnt)
-			{
-				eventlist.add(this,0,eventlist.getTime()+processingTimes[procCnt]); //target,type,time
-				// set status to busy
-				status='b';
-				procCnt++;
-			}
-			else
-			{
-				eventlist.stop();
-			}
+			eventlist.stop();
 		}
+
 	}
 
 	public static double drawRandomExponential(double mean)

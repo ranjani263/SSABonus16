@@ -9,7 +9,8 @@ package Simulation;
 public class Simulation {
 
     public CEventList list;
-    public Queue queue;
+    public Queue[] queues_regular;
+    public Queue[] queues_service;
     public Source source_reg;
     public Source source_ser;
     public Sink sink;
@@ -36,21 +37,30 @@ public class Simulation {
 
         // Create an eventlist
         list = new CEventList();
-        // A queue for the machine
-        queue = new Queue();
+        // Queues for the machines
+        queues_regular = new Queue[6];
+        queues_regular[0] = new Queue("Regular");
+        queues_regular[1] = new Queue("Regular");
+        queues_regular[2] = new Queue("Regular");
+        queues_regular[3] = new Queue("Regular");
+        queues_regular[4] = new Queue("Regular");
+        queues_regular[5] = new Queue("Regular");
+        queues_service = new Queue[1];
+        queues_service[0] = new Queue("Service");
+
         // A source
-        source_reg = new Source(queue,list,"Source Reg", IA_time_1);
-        source_ser = new Source(queue,list,"Source Ser", IA_time_2);
+        source_reg = new Source(queues_regular,list,"Regular", IA_time_1); //source of service desk customers
+        source_ser = new Source(queues_service,list,"Service", IA_time_2); //source of regular customers
         // A sink
         sink = new Sink("Sink 1");
         // A machine
         mach = new Machine[6];
-        mach[0] = new Machine(queue,sink,list,"Desk 1", true);
-        mach[1] = new Machine(queue,sink,list,"Desk 2", false);
-        mach[2] = new Machine(queue,sink,list,"Desk 3", false);
-        mach[3] = new Machine(queue,sink,list,"Desk 4", false);
-        mach[4] = new Machine(queue,sink,list,"Desk 5", false);
-        mach[5] = new Machine(queue,sink,list,"Desk 5", false);
+        mach[0] = new Machine(queues_regular[0], queues_service[0], sink, list,"Desk 1", service_time_2, true); //the service desk
+        mach[1] = new Machine(queues_regular[1], null, sink, list,"Desk 2", service_time_1, false);
+        mach[2] = new Machine(queues_regular[2],null, sink, list,"Desk 3", service_time_1, false);
+        mach[3] = new Machine(queues_regular[3],null, sink, list,"Desk 4", service_time_1, false);
+        mach[4] = new Machine(queues_regular[4],null, sink, list,"Desk 5", service_time_1, false);
+        mach[5] = new Machine(queues_regular[5], null, sink, list,"Desk 5", service_time_1, false);
 
 
     }

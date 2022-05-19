@@ -12,17 +12,20 @@ class Product
 	private ArrayList<Double> times;
 	private ArrayList<String> events;
 	private ArrayList<String> stations;
+	private String name;
 	
 	/** 
 	*	Constructor for the product
 	*	Mark the time at which it is created
-	*	@param create The current time
+	*	@param current_time The current time
+	* @param name type of product
 	*/
-	public Product()
+	public Product(double current_time, String name)
 	{
 		times = new ArrayList<>();
 		events = new ArrayList<>();
 		stations = new ArrayList<>();
+		this.name = name;
 	}
 	
 	
@@ -47,7 +50,13 @@ class Product
 	{
 		return stations;
 	}
-	
+
+	public String getName()
+	{
+		return name;
+	}
+
+
 	public double[] getTimesAsArray()
 	{
 		times.trimToSize();

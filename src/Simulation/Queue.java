@@ -13,15 +13,26 @@ public class Queue implements ProductAcceptor
 	private ArrayList<Product> row;
 	/** Requests from machine that will be handling the products */
 	private ArrayList<Machine> requests;
+	/** Type of Product */
+	private String type;
 	
 	/**
 	*	Initializes the queue and introduces a dummy machine
 	*	the machine has to be specified later
 	*/
-	public Queue()
+	public Queue(String type)
 	{
 		row = new ArrayList<>();
 		requests = new ArrayList<>();
+		this.type = type;
+	}
+
+	public ArrayList<Product> getRow(){
+		return row;
+	}
+
+	public String getType(){
+		return type;
 	}
 	
 	/**
